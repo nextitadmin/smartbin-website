@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Bin Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
+        body {
+
+
+
+            font-family: "Plus Jakarta Sans", sans-serif;
+            font-optical-sizing: auto;
+
+        }
+    </style>
+    <style>
+        /* Line connecting icons externally */
+        .icon-line-column::before {
+            content: "";
+            position: absolute;
+            /* Center the 2px line within the column (assuming w-12 = 3rem) */
+            left: calc(50% - 1px);
+            /* 50% of parent width minus half the line width */
+            width: 1px;
+            /* Start below the icon (icon is h-10=2.5rem, parent has pt-5=1.25rem. Top of icon is 1.25rem, bottom is 3.75rem) */
+            top: 3.8rem;
+            /* Start just below the icon circle */
+            /* Extend downwards to connect. Adjust negative value based on spacing */
+            bottom: -1rem;
+            /* Extend below the item's padding bottom */
+            background-color: #d1d5db;
+            /* Default line color (Tailwind zinc-300) */
+            z-index: 0;
+            /* Behind icon */
+        }
+
+        /* Hide line for the very last item's column */
+        .timeline-item:last-child .icon-line-column::before {
+            display: none;
+        }
+
+        /* Completed line color - applied if parent timeline-item has .completed */
+        .timeline-item.completed .icon-line-column::before {
+            background-color: #c4c4c4;
+            /* Tailwind green-500 */
+        }
+
+        /* Ensure icon wrapper itself is above the line */
+        .timeline-icon-wrapper {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <main id="app">
+        <header class="bg-white shadow-sm">
+            <div class="container mx-auto px-4 py-4">
+                <div class="flex justify-between items-center">
+                    <!-- Logo and Title -->
+                    <div class="flex items-center">
+                        <div class="bg-yellow-500 rounded-full w-12 h-12 flex items-center justify-center mr-4">
+                            <img src="./images/lagoslogo.png" alt="Lagos State Logo" class="w-12 h-12 object-contain" />
+
+                        </div>
+                        <div class="text-xs lg:text-sm">
+                            <p class="font-bold">UTILITIES SERVICE PROVIDER INITIATIVE BY</p>
+                            <p>THE LAGOS STATE GOVERNMENT</p>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button @click="menu = !menu" class="block lg:hidden focus:outline-none">
+                        <!-- Menu Icon (when menu is closed) -->
+                        <svg v-if="!menu" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <!-- X Icon (when menu is open) -->
+                        <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+
+                    <!-- Desktop Navigation -->
+                    <nav class="hidden lg:flex items-center space-x-6">
+                        <a href="/" class="text-zinc-800 hover:text-green-600">Home</a>
+                        <a href="#" class="text-green-700 hover:text-green-600">Track Smart Bin</a>
+                        <a href="" class="text-zinc-700 hover:text-green-600">Partners</a>
+                        <div class="flex items-center space-x-2">
+                            <a href="https://smart-bin-demo.vercel.app/"
+                                class="border border-green-700 text-green-700 px-6 py-2 rounded-lg hover:bg-green-50">Login</a>
+                            <a href="https://smart-bin-demo.vercel.app/signup"
+                                class="bg-green-700 text-white px-6 py-2 rounded-lg hover:bg-green-600">Sign
+                                Up</a>
+                        </div>
+                    </nav>
+                </div>
+
+                <!-- Mobile Navigation Menu -->
+                <div v-if="menu" class="lg:hidden mt-4 transition-all duration-300 ease-in-out">
+                    <nav class="flex flex-col space-y-4 py-2">
+                        <a href="/index.html" class="text-green-800 hover:text-green-600 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                            </svg>
+                            Home
+                        </a>
+                        <a href="#" class="text-zinc-700 hover:text-green-600 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
+                            Track Smart Bin
+                        </a>
+                        <a href="#" class="text-zinc-700 hover:text-green-600 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            Partners
+                        </a>
+                        <div class="flex space-x-2 pt-2">
+                            <a href="https://smart-bin-demo.vercel.app/"
+                                class="border border-green-700 text-green-700 px-6 py-2 rounded-lg hover:bg-green-50 w-full text-center flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                                </svg>
+                                Login
+                            </a>
+                            <a href="https://smart-bin-demo.vercel.app/signup"
+                                class="bg-green-700 text-white px-6 py-2 rounded-lg hover:bg-green-600 w-full text-center flex items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                </svg>
+                                Sign Up
+                            </a>
+                        </div>
+                    </nav>
+                </div>
+            </div>
+        </header>
+        <section class="max-w-5xl mx-auto my-20 px-4 sm:px-6 lg:px-8 min-h-screen">
+
+            <h1 class="text-3xl font-bold text-center text-zinc-900 mb-6">
+                {{ title }}
+            </h1>
+
+            <div
+                class="flex items-center gap-3 mb-16 max-w-md mx-auto border border-zinc-200 p-2 rounded-[16px] shadow-2xl shadow-zinc-200">
+                <input type="text" v-model="orderIdInput" :placeholder="orderDetails.id"
+                    class="flex-grow px-4 py-2.5 rounded-lg focus:ring-2 focus:outline-none focus:ring-green-700 focus:border-green-700 text-zinc-700" />
+                <button @click="trackOrder"
+                    class="px-7 py-2.5 bg-green-700 text-white font-semibold rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-150 ease-in-out">
+                    Track Bin
+                </button>
+            </div>
+
+            <div v-if="orderIdInput === orderDetails.id ">
+                <div class="flex items-center justify-center">
+                    <div
+                        class="bg-white border border-zinc-800/10 rounded-[40px] p-7 mb-10 lg:w-2/3 hover:shadow-2xl shadow-zinc-200 transition duration-300 transition-all">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                            <div class="flex items-center gap-3">
+                                <svg width="40" height="40" viewBox="0 0 40 40" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M5.2832 12.4L19.9998 20.9167L34.6165 12.45" stroke="#292D32"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    <path d="M20 36.0167V20.9" stroke="#292D32" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                    <path
+                                        d="M36.0167 21.3834V15.2834C36.0167 12.9834 34.3667 10.1834 32.35 9.06674L23.4501 4.13337C21.5501 3.06671 18.45 3.06671 16.55 4.13337L7.65003 9.06674C5.63337 10.1834 3.9834 12.9834 3.9834 15.2834V24.7168C3.9834 27.0168 5.63337 29.8167 7.65003 30.9334L16.55 35.8668C17.5 36.4001 18.75 36.6667 20 36.6667C21.25 36.6667 22.5001 36.4001 23.4501 35.8668"
+                                        stroke="#292D32" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                    <path
+                                        d="M32.0003 35.6667C34.9459 35.6667 37.3337 33.2789 37.3337 30.3334C37.3337 27.3878 34.9459 25 32.0003 25C29.0548 25 26.667 27.3878 26.667 30.3334C26.667 33.2789 29.0548 35.6667 32.0003 35.6667Z"
+                                        stroke="#007836" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                    <path d="M38.3337 36.6667L36.667 35" stroke="#007836" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                <div>
+                                    <p class="text-sm text-zinc-500 font-normal">Order ID</p>
+                                    <p class="font-medium text-zinc-900">{{ orderDetails.id }}</p>
+                                </div>
+                            </div>
+                            <div>
+                                <p class="text-sm text-zinc-500 font-normal">Date Processed</p>
+                                <p class="font-medium text-zinc-900">{{ orderDetails.dateProcessed }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-zinc-500 font-normal">Customer</p>
+                                <p class="font-medium text-zinc-900">{{ orderDetails.customer }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-zinc-500 font-normal">Destination</p>
+                                <p class="font-medium text-zinc-900 leading-snug">{{ orderDetails.destination }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-0">
+                    <div v-for="(event, index) in timelineEvents" :key="index"
+                        :class="['timeline-item flex gap-4 sm:gap-6', { 'completed': event.isCompleted }]">
+                        <div class="icon-line-column relative flex-shrink-0 w-12 flex justify-center pt-7">
+                            <div
+                                :class="['timeline-icon-wrapper flex-shrink-0 w-6 h-6 p-1 flex items-center justify-center', event.isCompleted ? 'bg-green-700' : 'bg-zinc-300']">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                    class="w-6 h-6 text-white">
+                                    <path fill-rule="evenodd"
+                                        d="M19.916 4.626a.75.75 0 0 1 .208 1.04l-9 13.5a.75.75 0 0 1-1.154.114l-6-6a.75.75 0 0 1 1.06-1.06l5.353 5.353 8.496-12.744a.75.75 0 0 1 1.04-.208Z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div :class="['flex-grow p-6 rounded-[32px] mb-3 lg:pl-12', getContentBoxClasses(event)]">
+                            <div class="flex flex-col sm:flex-row items-start sm:justify-between">
+                                <div>
+                                    <p class="font-medium text-zinc-700">{{ event.timestamp }}</p>
+                                    <p class="text-xs text-zinc-400 mt-0.5">{{ event.description }}</p>
+                                </div>
+                                <span
+                                    :class="['px-3 py-1 rounded-full text-xs font-medium mt-2 sm:mt-0 whitespace-nowrap', getStatusBadgeClasses(event.status)]">
+                                    {{ event.status }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </section>
+        <section class="bg-black text-white">
+            <div class="flex flex-col md:flex-row items-center justify-between mx-auto gap-10">
+                <!-- Left image -->
+                <div class="w-full md:w-2/5 flex justify-start items-start">
+                    <img src="./images/darkbin.png" alt="Smart Bin" class="   object-contain" />
+                </div>
+
+                <!-- Right content -->
+                <div class="w-full lg:w-2/3 justify-start text-center ">
+                    <h2 class="text-2xl lg:text-4xl font-medium text-zinc-300 mb-4 leading-snug">
+                        Do you want to get the smart bin for <br />
+                        you or your family?
+                        <span class="text-green-400 font-semibold">Apply today</span>
+                    </h2>
+                    <button
+                        class="mt-4 lg:my-0 my-8  px-6 py-2 bg-white text-green-600 font-semibold rounded-md border border-green-600 hover:bg-green-600 hover:text-white transition">
+                        Get Started
+                    </button>
+                </div>
+            </div>
+        </section>
+        <footer class="bg-white py-12">
+            <div class="max-w-7xl mx-auto px-6 py-4 flex flex-col md:flex-row justify-between items-start gap-8">
+                <!-- Left block: Bars + Logo + Text -->
+                <div class="flex flex-col gap-4 ">
+                    <!-- Colored bars -->
+                    <div class="flex gap-1">
+                        <div class="w-5 h-1 bg-red-600 rounded-sm"></div>
+                        <div class="w-5 h-1 bg-blue-600 rounded-sm"></div>
+                        <div class="w-5 h-1 bg-indigo-600 rounded-sm"></div>
+                        <div class="w-5 h-1 bg-yellow-400 rounded-sm"></div>
+                    </div>
+                    <!-- Logo + Text -->
+                    <div class="flex gap-4 items-center mt-2 md:mt-0">
+                        <img src="./images/lagoslogo.png" alt="Lagos State Logo" class="w-12 h-12 object-contain" />
+                        <p class="text-sm text-zinc-800 font-semibold leading-tight">
+                            UTILITIES SERVICE PROVIDER INITIATIVE BY <br />
+                            THE LAGOS STATE GOVERNMENT
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Right block: Nav + Socials + Copyright -->
+                <div class="flex flex-col items-start md:items-end gap-6 w-full md:w-auto">
+                    <!-- Nav links -->
+                    <div class="flex gap-6 text-sm font-medium text-zinc-700">
+                        <a href="#" class="hover:text-green-600">Home</a>
+                        <a href="#" class="hover:text-green-600">Track Smart Bin</a>
+                        <a href="#" class="hover:text-green-600">Partners</a>
+                    </div>
+                </div>
+            </div>
+            <div class="max-w-7xl mx-auto px-6  flex flex-col md:flex-row justify-between items-start gap-8">
+                <!-- Left block: Bars + Logo + Text -->
+                <div class="flex flex-col gap-4 ">
+                    <!-- Socials -->
+                    <div class="flex gap-4">
+                        <a href="#" aria-label="Facebook" class="text-zinc-600 hover:text-green-600">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M22 12a10 10 0 1 0-11.5 9.9v-7h-2v-3h2v-2.2c0-2 1.2-3.1 3-3.1.9 0 1.8.1 1.8.1v2h-1c-1 0-1.3.6-1.3 1.2V12h2.3l-.4 3h-1.9v7A10 10 0 0 0 22 12z" />
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="Twitter" class="text-zinc-600 hover:text-green-600">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M8 19c7.5 0 11.6-6.2 11.6-11.6v-.5A8.4 8.4 0 0 0 22 4.3a8.2 8.2 0 0 1-2.4.6 4.2 4.2 0 0 0 1.8-2.3 8.3 8.3 0 0 1-2.6 1A4.1 4.1 0 0 0 16.4 2c-2.3 0-4.1 1.9-4.1 4.1 0 .3 0 .7.1 1A11.7 11.7 0 0 1 3 3.1a4.1 4.1 0 0 0 1.3 5.5A4.1 4.1 0 0 1 3 8v.1c0 2 1.4 3.7 3.2 4a4.2 4.2 0 0 1-1.9.1c.5 1.5 2 2.6 3.8 2.7a8.3 8.3 0 0 1-5.1 1.8A8.6 8.6 0 0 1 2 19c1.7 1 3.7 1.5 6 1.5" />
+                            </svg>
+                        </a>
+                        <a href="#" aria-label="LinkedIn" class="text-zinc-600 hover:text-green-600">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                <path
+                                    d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5zm.02 4.7H2v13h3V8.2zm7.5 0H9.1v13h3v-7.2c0-1.9 2.4-2.1 2.4 0v7.2h3v-7.9c0-4.3-4.8-4.1-5.5-2v-1z" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right block: Nav + Socials + Copyright -->
+                <div class="flex flex-col items-start md:items-end gap-6 w-full md:w-auto">
+                    <!-- Nav links -->
+                    <p class="text-xs text-zinc-500">&copy; 2025 Copyright</p>
+                </div>
+            </div>
+        </footer>
+    </main>
+    <script>
+        const app = Vue.createApp({
+            data() {
+                return {
+                    title: 'Where is my Smart Bin?',
+                    orderIdInput: '',
+                    orderDetails: {
+                        id: '#3IBU1908',
+                        dateProcessed: '23rd July 2025',
+                        customer: 'Adedayo Kunle',
+                        destination: '19, Johnson Cole Avenue, Iyana Ipaja'
+                    },
+                    timelineEvents: [
+                        {
+                            timestamp: '26th July 2023 4:19PM',
+                            description: 'Smart Bin has been successfully activated',
+                            status: 'Activated',
+                            isCompleted: true,
+                            isCurrent: true
+                        },
+                        {
+                            timestamp: '23rd July 2023 4:19PM',
+                            description: 'Your smart Bin has been scheduled to be delivered on 26th July, 2023',
+                            status: 'Delivered',
+                            isCompleted: true,
+                            isCurrent: false
+                        },
+                        {
+                            timestamp: '23rd July 2023 4:19PM',
+                            description: 'Your smart Bin has been scheduled to be delivered on 26th July, 2023',
+                            status: 'Scheduled for Delivery',
+                            isCompleted: true,
+                            isCurrent: false
+                        },
+                        {
+                            timestamp: '23rd July 2023 4:19PM',
+                            description: 'Your smart Bin has been allocated in inventory',
+                            status: 'Inventory',
+                            isCompleted: true,
+                            isCurrent: false
+                        },
+                        {
+                            timestamp: '23rd July 2023 4:19PM',
+                            description: 'Your application has been received and is awaiting approval',
+                            status: 'Pending',
+                            isCompleted: true,
+                            isCurrent: false
+                        }
+                    ],
+
+                    menu: false,
+                };
+            },
+            methods: {
+                trackOrder() {
+                    console.log("Tracking order:", this.orderIdInput || this.orderDetails.id);
+                },
+                getStatusBadgeClasses(status) {
+                    switch (status) {
+                        case 'Activated': return 'bg-orange-100 text-orange-700';
+                        case 'Delivered': return 'bg-green-100 text-green-700';
+                        case 'Scheduled for Delivery': return 'bg-purple-100 text-purple-700';
+                        case 'Inventory': return 'bg-sky-100 text-sky-700';
+                        case 'Pending': return 'bg-zinc-100 text-zinc-800';
+                        default: return 'bg-zinc-100 text-zinc-700';
+                    }
+                },
+                getContentBoxClasses(event) {
+                    if (event.isCurrent) {
+                        return 'border border-green-700';
+                    } else {
+                        return 'bg-white border border-zinc-200/80';
+                    }
+                },
+
+
+
+            }
+        });
+
+        app.mount('#app');
+    </script>
+</body>
+
+</html>
